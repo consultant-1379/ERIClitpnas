@@ -1,0 +1,25 @@
+runLitpScript 2_node_cluster_setup.inc
+
+litpcrypt set key-for-user support support
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sp1 -o name="sfs1" management_ipv4="10.10.10.10" user_name="support" password_key="key-for-user" nas_type='unityxt'
+litp create -t nfs-service -p /infrastructure/storage/storage_providers/sp2 -o name="nfs1" ipv4address=10.10.10.10""
+
+litp create -t nfs-mount -p /infrastructure/storage/nfs_mounts/nfs1 -o export_path="/vx/ossrc1-file_system5" provider="nfs1" mount_point="/temp1" mount_options="soft,intr" network_name="nodes"
+litp inherit -p /deployments/local/clusters/cluster1/nodes/node1/file_systems/cnm1 -s /infrastructure/storage/nfs_mounts/nfs1
+
+
+litp create_plan
+
+litp run_plan
+
+assertState -p /infrastructure/storage/nfs_mounts/nfs1 Applied
+
+litp update -p /deployments/local/clusters/cluster1/nodes/node1/network_interfaces/if0 -o ipaddress=10.10.10.103
+
+litp create_plan
+
+assertCallbackTask _reboot_node_and_wait /deployments/local/clusters/cluster1/nodes/node1
+
+litp run_plan
+
+assertState -p /infrastructure/storage/nfs_mounts/nfs1 Applied

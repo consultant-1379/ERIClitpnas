@@ -1,0 +1,15 @@
+## Test that when creating a sfs-unmanaged_mount, when creating the nfs_mounts, it should fail when there are duplicate mount points
+
+runLitpScript ../custom_setup.inc
+
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sfs_service_sp1/ -o management_ipv4=172.16.30.17 user_name=support name=sfs1_init password_key=key-for-sfs
+litp create -t sfs-virtual-server -p /infrastructure/storage/storage_providers/sfs_service_sp1/virtual_servers/vs1 -o ipv4address=172.16.30.17 name=virtserv1
+
+litp create -p /infrastructure/storage/storage_providers/sp1_5284_test20 -t sfs-service -o name='test_21_a'
+litp create -p /infrastructure/storage/nfs_mounts/nm1_5284_test20 -t nfs-mount -o export_path='/vx/ossrc1-file_system4' network_name='mgmt' provider='virtserv1' mount_point=/5284_test20
+litp create -p /infrastructure/storage/nfs_mounts/nm2_5284_test20 -t nfs-mount -o export_path='/vx/ossrc1-file_system4' network_name='mgmt' provider='virtserv1' mount_point=/5284_test20
+
+litp inherit -p /deployments/d1/clusters/c1/nodes/n1/file_systems/nm1_5284_test20 -s /infrastructure/storage/nfs_mounts/nm1_5284_test20
+litp inherit -p /deployments/d1/clusters/c1/nodes/n1/file_systems/nm2_5284_test20 -s /infrastructure/storage/nfs_mounts/nm2_5284_test20
+
+assertError --err_type "ValidationError" --err_message 'Create plan failed: Value "/5284_test20" for property "mount_point" is already defined on path "/deployments/d1/clusters/c1/nodes/n1/file_systems/nm1_5284_test20"' --err_vpath "/deployments/d1/clusters/c1/nodes/n1/file_systems/nm2_5284_test20" create_plan

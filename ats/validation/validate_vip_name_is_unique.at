@@ -1,0 +1,13 @@
+runLitpScript 2_node_cluster_setup.inc
+
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sp2 -o name="sfs1"
+
+litp create -t sfs-virtual-server -p /infrastructure/storage/storage_providers/sp2/virtual_servers/vs1 -o name='vsvr1' ipv4address="10.10.10.10"
+
+litp create -t sfs-virtual-server -p /infrastructure/storage/storage_providers/sp2/virtual_servers/vs2 -o name='vsvr1' ipv4address="10.10.10.11"
+
+litp create -t nfs-mount -p /infrastructure/storage/nfs_mounts/nm2 -o export_path="/vx/abcde-fs1" provider="vsvr1" mount_point="/tmp2" mount_options="soft" network_name="storage"
+
+litp inherit -p /deployments/local/clusters/cluster1/nodes/node1/file_systems/fs2 -s /infrastructure/storage/nfs_mounts/nm2
+
+assertError create_plan

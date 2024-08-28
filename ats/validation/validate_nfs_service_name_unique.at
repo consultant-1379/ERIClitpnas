@@ -1,0 +1,11 @@
+runLitpScript 2_node_cluster_setup.inc
+
+litp create -t nfs-service -p /infrastructure/storage/storage_providers/sp1 -o name="nfs1" ipv4address="10.10.10.11"
+
+litp create -t nfs-service -p /infrastructure/storage/storage_providers/sp2 -o name="nfs1" ipv4address="10.10.10.12"
+
+litp create -t nfs-mount -p /infrastructure/storage/nfs_mounts/nm1 -o export_path="/exports/xyz-fs1" provider="nfs1" mount_point="/tmp1" mount_options="soft" network_name="blah"
+
+litp inherit -p /deployments/local/clusters/cluster1/nodes/node1/file_systems/fs2 -s /infrastructure/storage/nfs_mounts/nm1
+
+assertError create_plan

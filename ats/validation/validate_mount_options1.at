@@ -1,0 +1,70 @@
+runLitpScript 2_node_cluster_setup.inc
+
+
+assertError create -t nfs-mount -p /infrastructure/storage/nfs_mounts/fs1 -o export_path="/exports/xyz-fs1" provider="nfs1" network_name="mgmt" mount_point="/tmp"  mount_options='time0=600'
+
+
+assertError create -t nfs-mount -p /infrastructure/storage/nfs_mounts/fs1 -o export_path="/exports/xyz-fs1" provider="nfs1" network_name="mgmt" mount_point="/tmp" mount_options='hard,soft'
+
+
+assertError create -t nfs-mount -p /infrastructure/storage/nfs_mounts/fs1 -o export_path="/exports/xyz-fs1" provider="nfs1" network_name="mgmt" mount_point="/tmp"  mount_options='ac,noac'
+
+
+assertError create -t nfs-mount -p /infrastructure/storage/nfs_mounts/fs1 -o export_path="/exports/xyz-fs1" provider="nfs1" network_name="mgmt" mount_point="/tmp" mount_options='sharecache,nosharecache'
+
+
+assertError create -t nfs-mount -p /infrastructure/storage/nfs_mounts/fs1 -o export_path="/exports/xyz-fs1" provider="nfs1" network_name="mgmt" mount_point="/tmp" mount_options='resvport,noresvport'
+
+
+assertError create -t nfs-mount -p /infrastructure/storage/nfs_mounts/fs1 -o export_path="/exports/xyz-fs1" provider="nfs1" network_name="mgmt" mount_point="/tmp" mount_options='intr,nointr'
+
+
+assertError create -t nfs-mount -p /infrastructure/storage/nfs_mounts/fs1 -o export_path="/exports/xyz-fs1" provider="nfs1" network_name="mgmt" mount_point="/tmp" mount_options='cto,nocto'
+
+
+assertError create -t nfs-mount -p /infrastructure/storage/nfs_mounts/fs50 -o export_path="/exports/xyz-fs1" provider="nfs1" network_name="mgmt" mount_point="/tmp" mount_options='='
+
+
+litp create -t nfs-mount -p /infrastructure/storage/nfs_mounts/fs55 -o export_path="/exports/xyz-fs1" provider="nfs1" network_name="mgmt" mount_point="/tmp" mount_options='defaults'
+
+
+litp create -t nfs-mount -p /infrastructure/storage/nfs_mounts/fs56 -o export_path="/exports/xyz-fs1" provider="nfs1" network_name="mgmt" mount_point="/tmp1" mount_options='clientaddr=122.121.2.2'
+
+
+litp create -t nfs-mount -p /infrastructure/storage/nfs_mounts/fs59 -o export_path="/exports/xyz-fs1" provider="nfs1" network_name="mgmt" mount_point="/tmp2" mount_options='ac'
+
+
+assertError create -t nfs-mount -p /infrastructure/storage/nfs_mounts/fs60 -o export_path="/exports/xyz-fs1" provider="nfs1" network_name="mgmt" mount_point="/tmp2" mount_options='retry=A'
+
+
+assertError create -t nfs-mount -p /infrastructure/storage/nfs_mounts/fs61 -o export_path="/exports/xyz-fs1" provider="nfs1" network_name="mgmt" mount_point="/tmp2" mount_options='rsize=3,rsize=5'
+
+
+assertError create -t nfs-mount -p /infrastructure/storage/nfs_mounts/fs62 -o export_path="/exports/xyz-fs1" provider="nfs1" network_name="mgmt" mount_point="/tmp2" mount_options='acregmin=5,acregmax=3'
+
+
+litp create -t nfs-mount -p /infrastructure/storage/nfs_mounts/fs63 -o export_path="/exports/xyz-fs1" provider="nfs1" network_name="mgmt" mount_point="/tmp2" mount_options='acregmin=3,acregmax=5'
+
+
+assertError create -t nfs-mount -p /infrastructure/storage/nfs_mounts/fs64 -o export_path="/exports/xyz-fs1" provider="nfs1" network_name="mgmt" mount_point="/tmp2" mount_options='acregmin=a,acregmax=b'
+
+
+assertError create -t nfs-mount -p /infrastructure/storage/nfs_mounts/fs65 -o export_path="/exports/xyz-fs1" provider="nfs1" network_name="mgmt" mount_point="/tmp2" mount_options='acregmin=,acregmax='
+
+
+assertError create -t nfs-mount -p /infrastructure/storage/nfs_mounts/fs69 -o export_path="/exports/xyz-fs1" provider="nfs1" network_name="mgmt" mount_point="/tmp2" mount_options='proto=rubbish'
+
+
+litp create -t nfs-mount -p /infrastructure/storage/nfs_mounts/fs70 -o export_path="/exports/xyz-fs1" provider="nfs1" network_name="mgmt" mount_point="/tmp2" mount_options='proto=udp'
+
+
+assertError create -t nfs-mount -p /infrastructure/storage/nfs_mounts/fs66 -o export_path="/exports/xyz-fs1" provider="nfs1" network_name="mgmt" mount_point="/tmp2" mount_options='acdirmin=5,acdirmax=3'
+
+
+litp create -t nfs-mount -p /infrastructure/storage/nfs_mounts/fs67 -o export_path="/exports/xyz-fs1" provider="nfs1" network_name="mgmt" mount_point="/tmp2" mount_options='acdirmin=3,acdirmax=15'
+
+
+assertError create -t nfs-mount -p /infrastructure/storage/nfs_mounts/fs68 -o export_path="/exports/xyz-fs1" provider="nfs1" network_name="mgmt" mount_point="/tmp2" mount_options='acdirmin=b,acdirmax=a'
+
+
+assertError create -t nfs-mount -p /infrastructure/storage/nfs_mounts/fs500 -o export_path="/exports/xyz-fs1" provider="nfs1" network_name="mgmt" mount_point="/tmp2" mount_options='acdirmin=,acdirmax='

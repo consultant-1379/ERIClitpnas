@@ -1,0 +1,21 @@
+litp create -p /infrastructure/storage/storage_providers/sfs_service_sp1 -t sfs-service -o name=sfs1_init management_ipv4=105.1.1.1 user_name=support password_key=key-for-blah
+litp create -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1 -t sfs-pool -o name=litp2
+litp create -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test38 -t sfs-filesystem -o path='/vx/8524-fs1_test38' size='10M'
+
+litp export -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test38  -f /xml/test_38_n_create_conflicting_exports_filesystem.xml
+assertError --err_type ItemExistsError --err_vpath "/infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test38" --err_message 'Item /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test38 already exists' load -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems -f /xml/test_38_n_create_conflicting_exports_filesystem.xml
+
+litp create -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test38/exports/ex1_8524_test38 -t sfs-export -o ipv4allowed_clients='192.168.0.43' options='rw,no_root_squash'
+
+litp export -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test38/exports/ex1_8524_test38  -f /xml/test_38_n_create_conflicting_exports_a.xml
+
+assertError --err_type ItemExistsError --err_vpath "/infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test38/exports/ex1_8524_test38" --err_message 'Item /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test38/exports/ex1_8524_test38 already exists' load -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test38/exports -f /xml/test_38_n_create_conflicting_exports_a.xml
+
+litp create -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test38/exports/ex1_8524_test38_b -t sfs-export -o ipv4allowed_clients='192.168.0.43' options='ro'
+
+litp export -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test38/exports/ex1_8524_test38_b  -f /xml/test_38_n_create_conflicting_exports_b.xml
+
+assertError --err_type ItemExistsError --err_vpath "/infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test38/exports/ex1_8524_test38_b" --err_message 'Item /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test38/exports/ex1_8524_test38_b already exists' load -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test38/exports -f /xml/test_38_n_create_conflicting_exports_b.xml
+
+
+assertError create_plan   --err_type ValidationError --err_vpath "/infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test38/exports/ex1_8524_test38" --err_message 'Create plan failed: IP address "192.168.0.43" in value "192.168.0.43" for property "ipv4allowed_clients" is a duplicate of an IP address on path: "/infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test38/exports/ex1_8524_test38_b"'

@@ -1,0 +1,16 @@
+## Test that tries to change the order of ip in the allowed clients list
+
+litpcrypt set key-for-sfs support symantec
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sfs_service_sp1 -o name=sfs1_init management_ipv4=172.16.30.17 user_name=support password_key=key-for-sfs
+litp create -t sfs-pool -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1 -o name=litp2
+
+litp create -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_6815_test05 -t sfs-filesystem -o path='/vx/6815-fs1_test05' size='10M'
+litp create -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_6815_test05/exports/ex1_6815_test05 -t sfs-export -o ipv4allowed_clients='192.168.0.43,192.168.0.44' options='rw,no_root_squash'
+
+litp create_plan
+litp run_plan
+assertPlanState successful
+
+litp update -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_6815_test05/exports/ex1_6815_test05 -o ipv4allowed_clients='192.168.0.44,192.168.0.43'
+
+assertError --err_type "DoNothingPlanError" --err_message "Create plan failed: no tasks were generated" create_plan

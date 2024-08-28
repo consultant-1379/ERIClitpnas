@@ -1,0 +1,12 @@
+runLitpScript 2_node_cluster_setup.inc
+
+litp create -p /infrastructure/storage/storage_providers/sp1 -t sfs-service -o name='sfs'
+litp create -p /infrastructure/storage/storage_providers/sp1/virtual_servers/vs1 -t sfs-virtual-server -o name='vsvr1' ipv4address='10.10.10.20'
+litp create -p /infrastructure/storage/nfs_mounts/nm1 -t nfs-mount -o export_path='/vx/ossrc1-file_system1' network_name='nodes' provider='vsvr1' mount_point='/test1'
+litp inherit -p /ms/file_systems/nm1 -s /infrastructure/storage/nfs_mounts/nm1
+
+litp create_plan
+litp run_plan
+
+litp remove -p /infrastructure/storage/storage_providers/sp1
+assertError create_plan

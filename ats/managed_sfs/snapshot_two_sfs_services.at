@@ -1,0 +1,59 @@
+runLitpScript 2_node_cluster_setup.inc
+litpcrypt set key-for-sfs support support
+# Create 2 SFS services: sfs1 and sfs2
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sp1 -o name="sfs1" management_ipv4="10.10.10.11" user_name='support' password_key='key-for-sfs'
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sp2 -o name="sfs2" management_ipv4="10.10.20.11" user_name='support' password_key='key-for-sfs'
+
+# Create SFS Virtual Server for the first SFS: sfs1
+litp create -t sfs-virtual-server -p /infrastructure/storage/storage_providers/sp1/virtual_servers/vs1 -o name='sfs1vr1' ipv4address="10.10.10.31"
+litp create -t sfs-virtual-server -p /infrastructure/storage/storage_providers/sp1/virtual_servers/vs2 -o name='sfs1vr2' ipv4address="10.10.10.32"
+
+# Create SFS Virtual Server for the second SFS: sfs2
+litp create -t sfs-virtual-server -p /infrastructure/storage/storage_providers/sp2/virtual_servers/vs1 -o name='sfs2vr1' ipv4address="10.10.20.31"
+litp create -t sfs-virtual-server -p /infrastructure/storage/storage_providers/sp2/virtual_servers/vs2 -o name='sfs2vr2' ipv4address="10.10.20.32"
+
+# Create pool and cache for first SFS: sfs1
+litp create -t sfs-pool           -p /infrastructure/storage/storage_providers/sp1/pools/pl1 -o name='SFS1_Pool'
+litp create -t sfs-cache          -p /infrastructure/storage/storage_providers/sp1/pools/pl1/cache_objects/cache -o name="SFS1_cache"
+
+# Create pool and cache for second SFS: sfs2
+litp create -t sfs-pool           -p /infrastructure/storage/storage_providers/sp2/pools/pl1 -o name='SFS2_Pool'
+litp create -t sfs-cache          -p /infrastructure/storage/storage_providers/sp2/pools/pl1/cache_objects/cache -o name="SFS2_cache"
+
+# Create FS and share for first SFS: sfs1
+litp create -t sfs-filesystem     -p /infrastructure/storage/storage_providers/sp1/pools/pl1/file_systems/fs1 -o size="100M" path="/vx/sfs1-fs1" cache_name="SFS1_cache" snap_size="10"
+litp create -t sfs-export         -p /infrastructure/storage/storage_providers/sp1/pools/pl1/file_systems/fs1/exports/ex1 -o ipv4allowed_clients="10.10.10.101,10.10.10.102" options='rw,no_root_squash'
+
+# Create FS and share for second SFS: sfs2
+litp create -t sfs-filesystem     -p /infrastructure/storage/storage_providers/sp2/pools/pl1/file_systems/fs1 -o size="200M" path="/vx/sfs2-fs1" cache_name="SFS2_cache" snap_size="10"
+litp create -t sfs-export         -p /infrastructure/storage/storage_providers/sp2/pools/pl1/file_systems/fs1/exports/ex1 -o ipv4allowed_clients="10.10.10.101,10.10.10.102" options='rw,no_root_squash'
+
+# Create mounts and connect those mounts to nodes
+litp create -t nfs-mount -p /infrastructure/storage/nfs_mounts/m1 -o export_path="/vx/sfs1-fs1" provider="sfs1vr1" mount_point="/sfs1-fs1" mount_options="soft" network_name="nodes"
+litp create -t nfs-mount -p /infrastructure/storage/nfs_mounts/m2 -o export_path="/vx/sfs2-fs1" provider="sfs2vr1" mount_point="/sfs2-fs1" mount_options="soft" network_name="nodes"
+
+litp inherit -p /deployments/local/clusters/cluster1/nodes/node1/file_systems/fs1 -s /infrastructure/storage/nfs_mounts/m1
+litp inherit -p /deployments/local/clusters/cluster1/nodes/node2/file_systems/fs1 -s /infrastructure/storage/nfs_mounts/m2
+
+litp create_plan
+assertCallbackTask get_and_save_remote_host_key_callback /infrastructure/storage/storage_providers/sp1
+assertCallbackTask get_and_save_remote_host_key_callback /infrastructure/storage/storage_providers/sp2
+
+# Make sure Callaback tasks are generated to create new FS using correct pool on correct storage provider
+assertCallbackTask nfs_fs_creation_callback /infrastructure/storage/storage_providers/sp1/pools/pl1/file_systems/fs1 name='sfs1-fs1' size='100M' pool='SFS1_Pool' layout='simple' sfs_service_vpath='/infrastructure/storage/storage_providers/sp1'
+assertCallbackTask nfs_fs_creation_callback /infrastructure/storage/storage_providers/sp2/pools/pl1/file_systems/fs1 name='sfs2-fs1' size='200M' pool='SFS2_Pool' layout='simple' sfs_service_vpath='/infrastructure/storage/storage_providers/sp2'
+
+assertCallbackTask nfs_shares_creation_callback /infrastructure/storage/storage_providers/sp1/pools/pl1/file_systems/fs1/exports/ex1
+assertCallbackTask nfs_shares_creation_callback /infrastructure/storage/storage_providers/sp2/pools/pl1/file_systems/fs1/exports/ex1
+
+litp run_plan
+litp create_snapshot
+
+# Make sure Callabck tasks are generated to snapshot FSs using correct Pool, size and cache name
+assertCallbackTask _create_snapshot /snapshots/snapshot sfs_service_vpath=/infrastructure/storage/storage_providers/sp1 snapshot_name='L_sfs1-fs1_' filesystem='sfs1-fs1' cache_name='SFS1_cache'
+assertCallbackTask _create_snapshot /snapshots/snapshot sfs_service_vpath=/infrastructure/storage/storage_providers/sp2 snapshot_name='L_sfs2-fs1_' filesystem='sfs2-fs1' cache_name='SFS2_cache'
+
+assertCallbackTask _configure_cache /snapshots/snapshot pool_name='SFS2_Pool' cache_name='SFS2_cache' size='20M' sfs_service_vpath='/infrastructure/storage/storage_providers/sp2'
+assertCallbackTask _configure_cache /snapshots/snapshot pool_name='SFS1_Pool' cache_name='SFS1_cache' size='10M' sfs_service_vpath='/infrastructure/storage/storage_providers/sp1'
+
+assertState -p /snapshots/snapshot Applied

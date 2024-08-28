@@ -1,0 +1,229 @@
+[
+    {
+        "comment": "login",
+        "method": "GET",
+        "endpoint": "/api/types/loginSessionInfo/instances",
+        "json_in": null,
+        "status_code": 200,
+        "json_out": null
+    },
+    {
+        "comment": "ns create get ipPort1",
+        "method": "GET",
+        "endpoint": "/api/instances/ipPort/spa_ocp_0_eth0?fields=isLinkUp",
+        "json_in": null,
+        "status_code": 200,
+        "json_out": {
+            "content": {
+                "id": "spa_ocp_0_eth0",
+                "isLinkUp": true
+            }
+        }
+    },
+    {
+        "comment": "ns create get ipPort2",
+        "method": "GET",
+        "endpoint": "/api/instances/ipPort/spa_ocp_0_eth2?fields=isLinkUp",
+        "json_in": null,
+        "status_code": 200,
+        "json_out": {
+            "content": {
+                "id": "spa_ocp_0_eth2",
+                "isLinkUp": true
+            }
+        }
+    },
+    {
+        "comment": "ns create get fsnport spa_fsn_ocp_0_0",
+        "method": "GET",
+        "endpoint": "/api/instances/fsnPort/spa_fsn_ocp_0_0?fields=id,primaryPort,secondaryPorts",
+        "json_in": null,
+        "status_code": 404,
+        "json_out": {
+            "error": {
+                "errorCode": "131149829",
+                "httpStatusCode": 404,
+                "messages": [
+                        {
+                            "en-US": "The requested resource does not exist. (Error Code:0x7d13005)"
+                        }
+                    ]
+            }
+        }
+    },
+    {
+        "comment": "ns create get fsnPorts",
+        "method": "GET",
+        "endpoint": "/api/types/fsnPort/instances?fields=id,primaryPort,secondaryPorts,storageProcessor",
+        "json_in": null,
+        "status_code": 200,
+        "json_out": {
+            "entries": []
+        }
+    },
+    {
+        "comment": "ns create post fsnPort",
+        "method": "POST",
+        "endpoint": "/api/types/fsnPort/instances",
+        "json_in": {
+            "primaryPort": {
+                "id": "spa_ocp_0_eth0"
+            },
+            "secondaryPorts": [
+                {
+                    "id": "spa_ocp_0_eth2"
+                }
+            ]
+        },
+        "status_code": 200,
+        "json_out": {
+            "content": {
+                "id": "spa_fsn_ocp_0_0"
+            }
+        }
+    },
+    {
+        "comment": "ns create get pool",
+        "method": "GET",
+        "endpoint": "/api/instances/pool/name:pool1?fields=id",
+        "json_in": null,
+        "status_code": 200,
+        "json_out": {
+            "content": {
+                "id": "pool_1"
+            }
+        }
+    },
+    {
+        "comment": "ns create get storageProcessor",
+        "method": "GET",
+        "endpoint": "/api/instances/storageProcessor/spa?fields=",
+        "json_in": null,
+        "status_code": 200,
+        "json_out": {
+            "content": {
+                "id": "spa"
+            }
+        }
+    },
+    {
+        "comment": "ns create get nasServer",
+        "method": "GET",
+        "endpoint": "/api/types/nasServer/instances?fields=id,pool,homeSP,name",
+        "json_in": null,
+        "status_code": 200,
+        "json_out": {
+            "entries": []
+        }
+    },
+    {
+        "comment": "ns create post nasServer",
+        "method": "POST",
+        "endpoint": "/api/types/nasServer/instances",
+        "json_in": {
+            "homeSP": {
+                "id": "spa"
+            },
+            "name": "vsvr1",
+            "pool":
+                {
+                    "id": "pool_1"
+                }
+        },
+        "status_code": 200,
+        "json_out": {
+            "content": {
+                "id": "nas_1"
+            }
+        }
+    },
+    {
+        "comment": "ns create get fileInterface",
+        "method": "GET",
+        "endpoint": "/api/types/fileInterface/instances?fields=id,nasServer,ipPort,ipAddress,netmask,gateway",
+        "json_in": null,
+        "status_code": 200,
+        "json_out": {
+            "entries": []
+        }
+    },
+    {
+        "comment": "ns create post fileInterface",
+        "method": "POST",
+        "endpoint": "/api/types/fileInterface/instances",
+        "json_in": {
+            "gateway": "20.20.20.20",
+            "ipAddress": "10.10.10.10",
+            "ipPort": {
+                "id": "spa_fsn_ocp_0_0"
+            },
+            "nasServer":
+                {
+                    "id": "nas_1"
+                },
+            "netmask": "255.255.255.0"
+        },
+        "status_code": 200,
+        "json_out": {
+            "content": {
+                "id": "if_1"
+            }
+        }
+    },
+    {
+        "comment": "ns create get nfsServer",
+        "method": "GET",
+        "endpoint": "/api/types/nfsServer/instances?fields=id,nasServer,nfsv3Enabled,nfsv4Enabled",
+        "json_in": null,
+        "status_code": 200,
+        "json_out": {
+            "entries": []
+        }
+    },
+    {
+        "comment": "ns create post nfsServer",
+        "method": "POST",
+        "endpoint": "/api/types/nfsServer/instances",
+        "json_in": {
+            "nasServer": {
+                "id": "nas_1"
+            },
+            "nfsv3Enabled": false,
+            "nfsv4Enabled": true
+        },
+        "status_code": 200,
+        "json_out": {
+            "content": {
+                "id": "nfs_1"
+            }
+        }
+    },
+    {
+        "comment": "ns create get fileNDMPServer",
+        "method": "GET",
+        "endpoint": "/api/types/fileNDMPServer/instances?fields=id,nasServer,username",
+        "json_in": null,
+        "status_code": 200,
+        "json_out": {
+            "entries": []
+        }
+    },
+    {
+        "comment": "ns create post fileNDMPServer",
+        "method": "POST",
+        "endpoint": "/api/types/fileNDMPServer/instances",
+        "json_in": {
+            "nasServer": {
+                "id": "nas_1"
+            },
+            "password": "password"
+        },
+        "status_code": 200,
+        "json_out": {
+            "content": {
+                "id": "ndmp_1"
+            }
+        }
+    }
+]
+

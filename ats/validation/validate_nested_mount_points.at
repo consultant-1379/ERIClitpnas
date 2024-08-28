@@ -1,0 +1,32 @@
+runLitpScript 2_node_cluster_setup.inc
+
+litp create -t nfs-service -p /infrastructure/storage/storage_providers/sp2 -o name="nfs1" ipv4address=10.10.10.10""
+
+litp create -t nfs-mount -p /infrastructure/storage/nfs_mounts/nm1 -o export_path="/vx/abcde-fs1" provider="nfs1" mount_point="/tmp" mount_options="soft" network_name="nodes"
+
+litp create -t nfs-mount -p /infrastructure/storage/nfs_mounts/nm2 -o export_path="/vx/abcde-fs2" provider="nfs1" mount_point="/tmp/nested" mount_options="soft" network_name="nodes"
+
+litp create -t nfs-mount -p /infrastructure/storage/nfs_mounts/nm3 -o export_path="/vx/abcde-fs3" provider="nfs1" mount_point="/tmp/nnn" mount_options="soft" network_name="nodes"
+
+litp inherit -p /deployments/local/clusters/cluster1/nodes/node1/file_systems/fs1 -s /infrastructure/storage/nfs_mounts/nm1
+litp inherit -p /deployments/local/clusters/cluster1/nodes/node1/file_systems/fs2 -s /infrastructure/storage/nfs_mounts/nm2
+litp inherit -p /deployments/local/clusters/cluster1/nodes/node2/file_systems/fs1 -s /infrastructure/storage/nfs_mounts/nm3
+
+assertError --err_message='Nested mount points are not allowed: "/tmp/nested". The mount point "/tmp" is defined on "/deployments/local/clusters/cluster1/nodes/node1/file_systems/fs1"' create_plan
+
+litp remove -p /infrastructure/storage/nfs_mounts/nm2
+
+litp create -t nfs-mount -p /infrastructure/storage/nfs_mounts/nm4 -o export_path="/vx/enm100-pmData" provider="nfs1" mount_point="/mgmt_sfs_fs01" mount_options="soft" network_name=nodes
+litp inherit -p /ms/file_systems/fs1 -s /infrastructure/storage/nfs_mounts/nm4
+
+litp create -t nfs-mount -p /infrastructure/storage/nfs_mounts/nm5 -o export_path="/vx/ossrc1-file_system4" provider="nfs1" mount_point="/mgmt_sfs_fs01" mount_options="soft" network_name=nodes
+litp inherit -p /ms/file_systems/fs2 -s /infrastructure/storage/nfs_mounts/nm5
+
+assertError --err_message='Value "/mgmt_sfs_fs01" for property "mount_point" is already defined on path "/ms/file_systems/fs1"' create_plan
+
+litp remove -p /infrastructure/storage/nfs_mounts/nm5
+
+litp create -t nfs-mount -p /infrastructure/storage/nfs_mounts/nm5 -o export_path="/vx/ossrc1-file_system4" provider="nfs1" mount_point="/mgmt_sfs_fs01/nested" mount_options="soft" network_name=nodes
+litp inherit -p /ms/file_systems/fs2 -s /infrastructure/storage/nfs_mounts/nm5
+
+assertError --err_message='Nested mount points are not allowed: "/mgmt_sfs_fs01/nested". The mount point "/mgmt_sfs_fs01" is defined on "/ms/file_systems/fs1".' create_plan

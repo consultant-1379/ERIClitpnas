@@ -1,0 +1,140 @@
+[
+    {
+        "comment": "login",
+        "method": "GET",
+        "endpoint": "/api/types/loginSessionInfo/instances",
+        "json_in": null,
+        "status_code": 200,
+        "json_out": null
+    },
+    {
+        "comment": "get nfsServer info",
+        "method": "GET",
+        "endpoint": "/api/types/nfsServer/instances?fields=id,nasServer,nfsv3Enabled,nfsv4Enabled",
+        "json_in": null,
+        "status_code": 200,
+        "json_out": {
+            "entries": [
+                {
+                    "content": {
+                        "id": "nfs_114",
+                        "nfsv3Enabled": false,
+                        "nfsv4Enabled": true,
+                        "nasServer": {
+                          "id": "nas_124"
+                        }
+                    }
+                },
+                {
+                    "content": {
+                        "id": "nfs_115",
+                        "nfsv3Enabled": false,
+                        "nfsv4Enabled": true,
+                        "nasServer": {
+                          "id": "nas_125"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "comment": "modify nfs sharing protocol",
+        "method": "POST",
+        "endpoint": "/api/instances/nfsServer/nfs_114/action/modify",
+        "json_in": {
+            "nfsv4Enabled": true,
+            "nfsv3Enabled": true
+            },
+        "status_code": 200,
+        "json_out": {
+            "content": {
+                    "id": "nfs_114"
+            }
+        }
+    },
+    {
+        "comment": "modify nfs sharing protocol",
+        "method": "POST",
+        "endpoint": "/api/instances/nfsServer/nfs_115/action/modify",
+        "json_in": {
+            "nfsv4Enabled": true,
+            "nfsv3Enabled": true
+            },
+        "status_code": 200,
+        "json_out": {
+            "content": {
+                    "id": "nfs_115"
+            }
+        }
+    },
+    {
+        "comment": "login",
+        "method": "GET",
+        "endpoint": "/api/types/loginSessionInfo/instances",
+        "json_in": null,
+        "status_code": 200,
+        "json_out": null
+    },
+    {
+        "comment": "get nfsServer info",
+        "method": "GET",
+        "endpoint": "/api/types/nfsServer/instances?fields=id,nasServer,nfsv3Enabled,nfsv4Enabled",
+        "json_in": null,
+        "status_code": 200,
+        "json_out": {
+            "entries": [
+                {
+                    "content": {
+                        "id": "nfs_114",
+                        "nfsv3Enabled": false,
+                        "nfsv4Enabled": true,
+                        "nasServer": {
+                          "id": "nas_124"
+                        }
+                    }
+                },
+                {
+                    "content": {
+                        "id": "nfs_115",
+                        "nfsv3Enabled": false,
+                        "nfsv4Enabled": true,
+                        "nasServer": {
+                          "id": "nas_125"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "comment": "modify nfs sharing protocol",
+        "method": "POST",
+        "endpoint": "/api/instances/nfsServer/nfs_114/action/modify",
+        "json_in": {
+            "nfsv4Enabled": true,
+            "nfsv3Enabled": true
+            },
+        "status_code": 200,
+        "json_out": {
+            "content": {
+                    "id": "nfs_114"
+            }
+        }
+    },
+    {
+        "comment": "modify nfs sharing protocol",
+        "method": "POST",
+        "endpoint": "/api/instances/nfsServer/nfs_115/action/modify",
+        "json_in": {
+            "nfsv4Enabled": true,
+            "nfsv3Enabled": true
+            },
+        "status_code": 200,
+        "json_out": {
+            "content": {
+                    "id": "nfs_115"
+            }
+        }
+    }
+]

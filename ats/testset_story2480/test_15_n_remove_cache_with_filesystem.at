@@ -1,0 +1,23 @@
+## Test that ensures we cannot remove a cache if a filesystem remains in applied state, with a cache_name matching that cache
+
+litpcrypt set key-for-sfs support password
+
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sfs_service_sp1 -o name=sfs1_init management_ipv4=172.16.30.17 user_name=support password_key=key-for-sfs
+litp create -t sfs-pool -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1 -o name=litp2
+
+litp create -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/cache_objects/cache_2840 -t sfs-cache -o name='2480_cache_test15'
+litp create -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_2480_test15 -t sfs-filesystem -o path='/vx/2480-fs1_test15' size='10G' cache_name='2480_cache_test15' snap_size='10'
+
+litp create_plan
+litp run_plan
+assertPlanState successful
+
+assertState -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/cache_objects/cache_2840 Applied
+assertState -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_2480_test15 Applied
+
+litp remove -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/cache_objects/cache_2840
+
+let __err_a --err_type "ValidationError" --err_message 'Create plan failed: The "cache_name" property with value "2480_cache_test15" does not reference a defined sfs-cache item under any sfs-pool for the sfs-service on path "/infrastructure/storage/storage_providers/sfs_service_sp1".' --err_vpath "/infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_2480_test15"
+let __err_b --err_type "ValidationError" --err_message 'Create plan failed: sfs-cache with name "2480_cache_test15" is required by the sfs-filesystem item on path "/infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_2480_test15" to create a snapshot and cannot be removed.' --err_vpath "/infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/cache_objects/cache_2840"
+
+assertError __err_a __err_b create_plan

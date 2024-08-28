@@ -1,0 +1,17 @@
+runLitpScript 2_node_cluster_setup.inc
+
+litpcrypt set key-for-user support support
+
+litp create -t network -p /infrastructure/networking/networks/storage -o name='storage' subnet='10.10.20.0/24'
+
+litp create -p /deployments/local/clusters/cluster1/nodes/node1/network_interfaces/if1 -t eth -o network_name=storage ipaddress=10.10.20.110 macaddress="80:C1:6E:7A:01:C7" device_name=eth1
+
+litp create -t nfs-service -p /infrastructure/storage/storage_providers/sp1 -o name="nfs1" ipv4address="10.10.20.10"
+
+litp create -t nfs-mount -p /infrastructure/storage/nfs_mounts/nm1 -o export_path="/vx/exports/xyz-fs1" provider="nfs1" mount_point="/tmp1" mount_options="soft" network_name="storage"
+
+litp inherit -p /deployments/local/clusters/cluster1/nodes/node1/file_systems/fs1 -s /infrastructure/storage/nfs_mounts/nm1
+
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sp2 -o name="sfs1" management_ipv4="10.10.10.10" user_name="support" password_key="key-for-user" nas_type='unityxt'
+
+litp create_plan

@@ -1,0 +1,3 @@
+runLitpScript 2_node_cluster_setup.inc
+
+assertError create -t nfs-service -p /infrastructure/storage/storage_providers/sp1 -o name="nfs1"

@@ -1,0 +1,45 @@
+[
+    {
+        "comment": "login",
+        "method": "GET",
+        "endpoint": "/api/types/loginSessionInfo/instances",
+        "json_in": null,
+        "status_code": 200,
+        "json_out": null
+    },
+    {
+        "comment": "snapshot create get fs",
+        "method": "GET",
+        "endpoint": "/api/instances/filesystem/name:XT-testfs?fields=storageResource",
+        "json_in": null,
+        "status_code": 200,
+        "json_out": {
+            "content": {
+                "id": "fs_1",
+                "storageResource": {
+                    "id": "res_1"
+                }
+            }
+        }
+    },
+    {
+        "comment": "share create ",
+        "method": "POST",
+        "endpoint": "/api/types/snap/instances",
+        "json_in": {
+            "storageResource": {
+                "id": "res_1"
+            },
+            "name": "L_XT-testfs_OMBS"
+        },
+        "status_code": 200,
+        "json_out": {
+            "content": {
+                "storageResource": {
+                    "id": "fs_1"
+                }
+            }
+        }
+    }
+
+]

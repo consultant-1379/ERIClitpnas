@@ -1,0 +1,40 @@
+runLitpScript 2_node_cluster_setup.inc
+
+litpcrypt set key-for-user support support
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sp1 -o name="sfs1" management_ipv4="10.10.10.10" user_name="support" password_key="key-for-user"
+litp create -t sfs-virtual-server -p /infrastructure/storage/storage_providers/sp1/virtual_servers/vrs1 -o name=vrs1 ipv4address="172.16.100.2"
+
+#First Pool
+litp create -t sfs-pool -p /infrastructure/storage/storage_providers/sp1/pools/p1 -o name='sfs_pool1'
+litp create -t sfs-cache -p /infrastructure/storage/storage_providers/sp1/pools/p1/cache_objects/cache1 -o name="my_cache"
+litp create -t sfs-filesystem -p /infrastructure/storage/storage_providers/sp1/pools/p1/file_systems/fs1 -o path="/vx/some" size="1024M" snap_size=10 cache_name=my_cache
+
+#Second Pool
+litp create -t sfs-pool -p /infrastructure/storage/storage_providers/sp1/pools/p2 -o name='sfs_pool2'
+litp create -t sfs-filesystem -p /infrastructure/storage/storage_providers/sp1/pools/p2/file_systems/fs1 -o path="/vx/some2" size="1024M" snap_size=10 cache_name=my_cache
+
+
+litp create_plan
+assertCallbackTask get_and_save_remote_host_key_callback /infrastructure/storage/storage_providers/sp1
+litp run_plan
+
+
+#Add a second cache in pool2 and this should raise a validation error
+litp create -t sfs-cache -p /infrastructure/storage/storage_providers/sp1/pools/p2/cache_objects/cache2 -o name="my_cache2"
+assertErrorMessage 'Only one sfs-cache is allowed per sfs-service. An sfs-cache with a "name" property value of "my_cache" is already defined for the sfs-service on path "/infrastructure/storage/storage_providers/sp1/pools/p1/cache_objects/cache1".' create_plan
+assertError create_plan
+
+
+#
+##create a third pool that is empty which should raise a validation error
+litp create -t sfs-pool -p /infrastructure/storage/storage_providers/sp1/pools/p3 -o name='sfs_pool3'
+assertErrorMessage 'The sfs-pool with a property "name" value of "sfs_pool3" must contain a minimum of one sfs-filesystem.' create_plan
+assertError create_plan
+assertCallbackTask get_and_save_remote_host_key_callback /infrastructure/storage/storage_providers/sp1
+#
+
+##
+litp remove -p /infrastructure/storage/storage_providers/sp1/pools/p3
+litp create -t sfs-filesystem -p /infrastructure/storage/storage_providers/sp1/pools/p2/file_systems/fs2 -o path="/vx/some3" size="1024M" snap_size=10 cache_name=my_cache2
+litp create_snapshot
+

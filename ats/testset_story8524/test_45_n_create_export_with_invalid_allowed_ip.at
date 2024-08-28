@@ -1,0 +1,24 @@
+runLitpScript custom_setup.inc
+
+litp create -p /infrastructure/storage/storage_providers/sfs_service_sp1 -t sfs-service -o name=sfs1_init user_name=support password_key=key-for_sfs management_ipv4='172.16.30.17'
+litp create -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1 -t sfs-pool -o name=litp2
+litp create -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test45 -t sfs-filesystem -o path='/vx/8524-fs1_test45' size='10M'
+
+litp export -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test45  -f /xml/test_45_n_create_export_with_invalid_allowed_ip_filesystem.xml
+assertError --err_type ItemExistsError --err_vpath "/infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test45" --err_message 'Item /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test45 already exists' load -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems -f /xml/test_45_n_create_export_with_invalid_allowed_ip_filesystem.xml
+
+litp create -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test45/exports/ex1_8524_test45 -t sfs-export -o ipv4allowed_clients='192.168.0.43' options='rw,no_root_squash'
+
+litp export -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test45/exports/ex1_8524_test45  -f /xml/test_45_n_create_export_with_invalid_allowed_ip_export_a.xml
+assertError --err_type ItemExistsError --err_vpath "/infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test45/exports/ex1_8524_test45" --err_message 'Item /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test45/exports/ex1_8524_test45 already exists' load -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test45/exports -f /xml/test_45_n_create_export_with_invalid_allowed_ip_export_a.xml
+
+litp create -p /infrastructure/storage/nfs_mounts/nm1_8524_test45 -t nfs-mount -o export_path='/vx/8524-fs1_test45' network_name='mgmt' provider='virtserv1' mount_options='soft' mount_point='/test1'
+
+litp export -p /infrastructure/storage/nfs_mounts/nm1_8524_test45  -f /xml/test_45_n_create_export_with_invalid_allowed_ip_export_b.xml
+assertError --err_type ItemExistsError --err_vpath "/infrastructure/storage/nfs_mounts/nm1_8524_test45" --err_message 'Item /infrastructure/storage/nfs_mounts/nm1_8524_test45 already exists' load -p /infrastructure/storage/nfs_mounts -f /xml/test_45_n_create_export_with_invalid_allowed_ip_export_b.xml
+
+litp create -p /infrastructure/storage/storage_providers/sfs_service_sp1/virtual_servers/vs1 -t sfs-virtual-server -o name=virtserv1 ipv4address='172.16.30.17'
+
+litp inherit -p /deployments/d1/clusters/c1/nodes/n2/file_systems/nm1_8524_test45 -s /infrastructure/storage/nfs_mounts/nm1_8524_test45
+
+assertError create_plan --err_type ValidationError --err_message 'Create plan failed: The IP address for the network "mgmt" must be included in the property "ipv4allowed_clients" of an sfs-export which is defined under an sfs-filesystem which has a property "path" defined as "/vx/8524-fs1_test45".'

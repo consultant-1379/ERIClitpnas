@@ -1,0 +1,64 @@
+runLitpScript 2_node_cluster_setup.inc
+
+# "ipv4address" values where specified should be unique within the scope of the (parent) sfs-service storage provider.
+
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sp2 -o name="sfs2"
+
+litp create -t sfs-virtual-server -p /infrastructure/storage/storage_providers/sp2/virtual_servers/vs1 -o name='vs1' ipv4address='1.1.1.1'
+
+litp create -t sfs-virtual-server -p /infrastructure/storage/storage_providers/sp2/virtual_servers/vs2 -o name='vs2' ipv4address='1.1.1.1'
+
+assertError --err_message='Value "1.1.1.1" for property "ipv4address" is already defined on sfs-virtual-server path "/infrastructure/storage/storage_providers/sp2/virtual_servers/vs1"' create_plan
+
+litp remove -p /infrastructure/storage/storage_providers/sp2/virtual_servers/vs2
+
+litp create_plan
+
+### sfs-pool
+# "name" must be unique within the scope of the (parent) sfs-service.
+# If sfs-pool is defined it must have a minimum of 1 sfs-filesystem.
+
+
+litp create -t sfs-pool -p /infrastructure/storage/storage_providers/sp2/pools/p1 -o name='sfs_pool'
+assertError --err_message='Create plan failed: An sfs-service with only property "name" defined should have no related sfs-pool items defined.' create_plan
+litp create -t sfs-pool -p /infrastructure/storage/storage_providers/sp2/pools/p2 -o name='sfs_pool'
+litp remove -p /infrastructure/storage/storage_providers/sp2/pools/p1
+litp remove -p /infrastructure/storage/storage_providers/sp2/pools/p2
+
+### sfs-filesystem
+# Must be unique among all sfs-filesystems within the scope of sfs-service.
+litpcrypt set key-for-user support support
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sp3 -o name="sfs3" management_ipv4="10.10.10.10" user_name="support" password_key="key-for-user"
+litp create -t sfs-pool -p /infrastructure/storage/storage_providers/sp3/pools/p1 -o name='sfs_pool1'
+litp create -t sfs-filesystem -p /infrastructure/storage/storage_providers/sp3/pools/p1/file_systems/fs1 -o path="/vx/some" size="10M"
+litp create -t sfs-pool -p /infrastructure/storage/storage_providers/sp3/pools/p2 -o name='sfs_pool2'
+litp create -t sfs-filesystem -p /infrastructure/storage/storage_providers/sp3/pools/p2/file_systems/fs1 -o path="/vx/some" size="10M"
+assertError --err_message='Value "/vx/some" for property "path" is already defined on path: "/infrastructure/storage/storage_providers/sp3/pools/p2/file_systems/fs1"' create_plan
+litp remove -p /infrastructure/storage/storage_providers/sp3/pools/p2/file_systems/fs1
+litp remove -p /infrastructure/storage/storage_providers/sp3/pools/p2
+
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sp4 -o name="sfs4" management_ipv4="10.10.10.11" user_name="support" password_key="key-for-user"
+litp create -t sfs-pool -p /infrastructure/storage/storage_providers/sp4/pools/p1 -o name='sfs_pool3'
+litp create -t sfs-filesystem -p /infrastructure/storage/storage_providers/sp4/pools/p1/file_systems/fs1 -o path="/vx/some" size="10M"
+litp create_plan
+
+### sfs-export
+# An individual  "ipv4allowed_clients" ip address must be unique among all
+# sfs-exports within the scope of a (parent) sfs-filesystem, ie should only
+# appear within one "ipv4allowed_clients" list
+litp create -t sfs-export -p /infrastructure/storage/storage_providers/sp4/pools/p1/file_systems/fs1/exports/ex1 -o ipv4allowed_clients="1.1.1.1" options="rw"
+litp create -t sfs-export -p /infrastructure/storage/storage_providers/sp4/pools/p1/file_systems/fs1/exports/ex2 -o ipv4allowed_clients="1.1.1.1" options="rw"
+assertError --err_message='IP address "1.1.1.1" in value "1.1.1.1" for property "ipv4allowed_clients" is a duplicate of an IP address on path: "/infrastructure/storage/storage_providers/sp4/pools/p1/file_systems/fs1/exports/ex1"' create_plan
+litp remove -p /infrastructure/storage/storage_providers/sp4/pools/p1/file_systems/fs1/exports/ex1
+litp remove -p /infrastructure/storage/storage_providers/sp4/pools/p1/file_systems/fs1/exports/ex2
+litp create -t sfs-export -p /infrastructure/storage/storage_providers/sp4/pools/p1/file_systems/fs1/exports/ex1 -o ipv4allowed_clients="1.1.1.1,1.1.1.2,1.1.1.3" options="rw"
+litp create -t sfs-export -p /infrastructure/storage/storage_providers/sp4/pools/p1/file_systems/fs1/exports/ex2 -o ipv4allowed_clients="1.1.1.4,1.1.1.2" options="rw"
+assertError --err_message='IP address "1.1.1.2" in value "1.1.1.4,1.1.1.2" for property "ipv4allowed_clients" is a duplicate of an IP address on path: "/infrastructure/storage/storage_providers/sp4/pools/p1/file_systems/fs1/exports/ex1"' create_plan
+litp remove -p /infrastructure/storage/storage_providers/sp4/pools/p1/file_systems/fs1/exports/ex1
+litp remove -p /infrastructure/storage/storage_providers/sp4/pools/p1/file_systems/fs1/exports/ex2
+litp create -t sfs-export -p /infrastructure/storage/storage_providers/sp4/pools/p1/file_systems/fs1/exports/ex1 -o ipv4allowed_clients="1.1.1.1,1.1.1.2,1.1.1.3,1.1.1.4" options="rw"
+litp create -t sfs-export -p /infrastructure/storage/storage_providers/sp4/pools/p1/file_systems/fs1/exports/ex2 -o ipv4allowed_clients="1.1.1.5,1.1.1.6,1.1.1.1,1.1.1.3,1.1.1.7" options="ro"
+assertError --err_message='IP address "1.1.1.1" in value "1.1.1.5,1.1.1.6,1.1.1.1,1.1.1.3,1.1.1.7" for property "ipv4allowed_clients" is a duplicate of an IP address on path: "/infrastructure/storage/storage_providers/sp4/pools/p1/file_systems/fs1/exports/ex1"' create_plan
+assertError --err_message='IP address "1.1.1.3" in value "1.1.1.5,1.1.1.6,1.1.1.1,1.1.1.3,1.1.1.7" for property "ipv4allowed_clients" is a duplicate of an IP address on path: "/infrastructure/storage/storage_providers/sp4/pools/p1/file_systems/fs1/exports/ex1"' create_plan
+
+

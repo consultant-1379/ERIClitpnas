@@ -1,0 +1,24 @@
+#Create Nas server for unityxt
+
+litpcrypt set key-for-user support support
+
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sp1 -o name="sfs1" management_ipv4="10.10.10.10" user_name="support" password_key="key-for-user" nas_type='unityxt'
+litp create -t sfs-virtual-server -p /infrastructure/storage/storage_providers/sp1/virtual_servers/vrs1 -o name=vrs1 ipv4address="10.10.10.20" ports="0,2" sharing_protocols="nfsv4" san_pool="pool_1" sp="spa" subnet="224.11.12.13/32" gateway="255.255.255.255"
+litp create -t sfs-pool -p /infrastructure/storage/storage_providers/sp1/pools/p1 -o name='pool_1'
+litp create -t sfs-filesystem -p /infrastructure/storage/storage_providers/sp1/pools/p1/file_systems/fs1 -o path="/XT-some" size="3G" snap_size="100" provider="vrs1"
+
+litp create_plan
+litp run_plan
+
+assertState -p /infrastructure/storage/storage_providers/sp1/virtual_servers/vrs1 Applied
+
+# No updated when using existing protocol
+litp update  -p /infrastructure/storage/storage_providers/sp1/virtual_servers/vrs1 -o sharing_protocols="nfsv4"
+assertState -p /infrastructure/storage/storage_providers/sp1/virtual_servers/vrs1 Applied
+
+# Update sharing_protocol from nfsv4 to nfsv3,nfsv4
+litp update  -p /infrastructure/storage/storage_providers/sp1/virtual_servers/vrs1 -o sharing_protocols="nfsv3,nfsv4"
+assertState -p /infrastructure/storage/storage_providers/sp1/virtual_servers/vrs1 Updated
+litp create_plan
+assertCallbackTask nfs_ns_change_sharing_protocol_callback /infrastructure/storage/storage_providers/sp1/virtual_servers/vrs1
+litp run_plan

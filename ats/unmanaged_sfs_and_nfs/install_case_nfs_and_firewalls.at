@@ -1,0 +1,31 @@
+runLitpScript 2_node_cluster_setup.inc
+#ms
+litp create -t firewall-node-config -p /ms/configs/fw_config
+litp create -t firewall-rule -p /ms/configs/fw_config/rules/fw_nfsudp -o 'name=011 nfsudp' dport=111,2049,4001 proto=udp
+litp create -t firewall-rule -p /ms/configs/fw_config/rules/fw_nfstcp -o 'name=001 nfstcp' dport=111,2049,4001 proto=tcp
+
+#node1
+litp create -t firewall-node-config -p /deployments/local/clusters/cluster1/nodes/node1/configs/fw_config
+litp create -t firewall-rule -p /deployments/local/clusters/cluster1/nodes/node1/configs/fw_config/rules/fw_nfsudp -o 'name=011 nfsudp' dport=111,2049,4001 proto=udp
+litp create -t firewall-rule -p /deployments/local/clusters/cluster1/nodes/node1/configs/fw_config/rules/fw_nfstcp -o 'name=001 nfstcp' dport=111,2049,4001 proto=tcp
+#node2
+litp create -t firewall-node-config -p /deployments/local/clusters/cluster1/nodes/node2/configs/fw_config
+litp create -t firewall-rule -p /deployments/local/clusters/cluster1/nodes/node2/configs/fw_config/rules/fw_nfsudp -o 'name=011 nfsudp' dport=111,2049,4001 proto=udp
+litp create -t firewall-rule -p /deployments/local/clusters/cluster1/nodes/node2/configs/fw_config/rules/fw_nfstcp -o 'name=001 nfstcp' dport=111,2049,4001 proto=tcp
+
+litpcrypt set key-for-user support support
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sp1 -o name="sfs1" management_ipv4="10.10.10.10" user_name="support" password_key="key-for-user" nas_type='unityxt'
+litp create -t nfs-service -p /infrastructure/storage/storage_providers/sp2 -o name="nfs1" ipv4address="10.10.10.11"
+litp create -t nfs-mount -p /infrastructure/storage/nfs_mounts/nm1 -o export_path="/vx/exports/xyz-fs1" provider="nfs1" mount_point="/tmp1" mount_options="soft" network_name="nodes"
+
+litp inherit -p /ms/file_systems/fs1 -s /infrastructure/storage/nfs_mounts/nm1
+litp inherit -p /deployments/local/clusters/cluster1/nodes/node1/file_systems/fs1 -s /infrastructure/storage/nfs_mounts/nm1
+litp inherit -p /deployments/local/clusters/cluster1/nodes/node2/file_systems/fs1 -s /infrastructure/storage/nfs_mounts/nm1
+
+litp create_plan
+
+
+litp run_plan
+
+#assertDirectoryContents install_phase_mainfests /opt/ericsson/nms/litp/etc/puppet/manifests/plugins/
+

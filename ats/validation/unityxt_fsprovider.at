@@ -1,0 +1,7 @@
+# Verify file system must have provider property
+litpcrypt set key-for-user support support
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sp1 -o name="sfs1" management_ipv4="10.10.10.10" user_name="support" password_key="key-for-user" nas_type='unityxt'
+litp create -t sfs-virtual-server -p /infrastructure/storage/storage_providers/sp1/virtual_servers/vrs1 -o name=vrs1 ipv4address="10.10.10.20"
+litp create -t sfs-pool -p /infrastructure/storage/storage_providers/sp1/pools/p1 -o name='XT'
+litp create -t sfs-filesystem -p /infrastructure/storage/storage_providers/sp1/pools/p1/file_systems/fs1 -o path="/XT-some" size="3G" snap_size="100"
+assertError create_plan

@@ -1,0 +1,7 @@
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sfs_service_sp1 -o name='sfs' management_ipv4='172.16.30.17' user_name='support' password_key='key-for-sfs'
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sp1_8524_test11 -o name='sfs2' management_ipv4='172.16.30.17' user_name='support' password_key='key-for-sfs'
+
+litp export -p /infrastructure/storage/storage_providers/sp1_8524_test11  -f /xml/test_11_n_create_duplicate_services.xml
+
+assertError --err_type ItemExistsError --err_vpath "/infrastructure/storage/storage_providers/sp1_8524_test11" --err_message 'Item /infrastructure/storage/storage_providers/sp1_8524_test11 already exists' load -p /infrastructure/storage/storage_providers -f /xml/test_11_n_create_duplicate_services.xml
+assertError create_plan --err_type ValidationError --err_vpath "/infrastructure/storage/storage_providers/sp1_8524_test11" --err_message 'Create plan failed: Value "172.16.30.17" for property "management_ipv4" is already defined on sfs-service path "/infrastructure/storage/storage_providers/sfs_service_sp1"'

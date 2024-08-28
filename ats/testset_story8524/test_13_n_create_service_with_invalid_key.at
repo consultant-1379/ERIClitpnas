@@ -1,0 +1,21 @@
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sp1_8524_test13 -o name='sfs' management_ipv4='105.1.1.1' user_name='support' password_key='key-for-blah'
+
+litp export -p /infrastructure/storage/storage_providers/sp1_8524_test13  -f /xml/test_13_n_create_service_with_invalid_key.xml
+
+assertError --err_type ItemExistsError --err_vpath "/infrastructure/storage/storage_providers/sp1_8524_test13" --err_message 'Item /infrastructure/storage/storage_providers/sp1_8524_test13 already exists' load -p /infrastructure/storage/storage_providers -f /xml/test_13_n_create_service_with_invalid_key.xml
+
+litpcrypt set key-for-sfs support symantec
+
+litp create -t sfs-pool -p /infrastructure/storage/storage_providers/sp1_8524_test13/pools/pl1_8524_test13 -o name='litp'
+litp create -t sfs-filesystem -p /infrastructure/storage/storage_providers/sp1_8524_test13/pools/pl1_8524_test13/file_systems/fs1_8524_test13 -o path='/vx/8524-fs1_test13' size='10M'
+
+litp export -p /infrastructure/storage/storage_providers/sp1_8524_test13/pools/pl1_8524_test13/file_systems/fs1_8524_test13  -f /xml/test_13_n_create_service_with_invalid_key_filesystem.xml
+
+assertError --err_type ItemExistsError --err_vpath "/infrastructure/storage/storage_providers/sp1_8524_test13/pools/pl1_8524_test13/file_systems/fs1_8524_test13" --err_message 'Item /infrastructure/storage/storage_providers/sp1_8524_test13/pools/pl1_8524_test13/file_systems/fs1_8524_test13 already exists' load -p /infrastructure/storage/storage_providers/sp1_8524_test13/pools/pl1_8524_test13/file_systems -f /xml/test_13_n_create_service_with_invalid_key_filesystem.xml
+
+litp create -t sfs-export -p /infrastructure/storage/storage_providers/sp1_8524_test13/pools/pl1_8524_test13/file_systems/fs1_8524_test13/exports/ex1_8524_test13 -o ipv4allowed_clients='192.168.0.43' options='rw,no_root_squash'
+
+litp export -p /infrastructure/storage/storage_providers/sp1_8524_test13/pools/pl1_8524_test13/file_systems/fs1_8524_test13/exports/ex1_8524_test13  -f /xml/test_13_n_create_service_with_invalid_key_filesystem_export.xml
+
+assertError --err_type ItemExistsError --err_vpath "/infrastructure/storage/storage_providers/sp1_8524_test13/pools/pl1_8524_test13/file_systems/fs1_8524_test13/exports/ex1_8524_test13" --err_message 'Item /infrastructure/storage/storage_providers/sp1_8524_test13/pools/pl1_8524_test13/file_systems/fs1_8524_test13/exports/ex1_8524_test13 already exists' load -p /infrastructure/storage/storage_providers/sp1_8524_test13/pools/pl1_8524_test13/file_systems/fs1_8524_test13/exports -f /xml/test_13_n_create_service_with_invalid_key_filesystem_export.xml
+assertError create_plan --err_type CredentialsNotFoundError --err_message 'Create plan failed: Not able to find credentials for plugin nas_plugin, for service "key-for-blah"'

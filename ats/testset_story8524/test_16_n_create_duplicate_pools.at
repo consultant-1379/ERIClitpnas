@@ -1,0 +1,18 @@
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sfs_service_sp1 -o name=sfs1_init management_ipv4=105.1.1.1 user_name=support password_key=key-for-blah
+
+litp create -t sfs-pool -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1 -o name=litp2
+litp create -t sfs-filesystem -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8524_test16 -o path='/vx/8524-fs1_test16_a' size='10M'
+
+litp create -t sfs-pool -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/pl1_8524_test16 -o name=litp2
+litp create -t sfs-filesystem -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/pl1_8524_test16/file_systems/fs1_8524_test16 -o path='/vx/8524-fs1_test16_b' size='10M'
+
+litp export -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/pl1_8524_test16/file_systems/fs1_8524_test16  -f /xml/test_16_n_create_duplicate_pools_filesystem.xml
+
+assertError --err_type ItemExistsError --err_vpath "/infrastructure/storage/storage_providers/sfs_service_sp1/pools/pl1_8524_test16/file_systems/fs1_8524_test16" --err_message 'Item /infrastructure/storage/storage_providers/sfs_service_sp1/pools/pl1_8524_test16/file_systems/fs1_8524_test16 already exists' load -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/pl1_8524_test16/file_systems -f /xml/test_16_n_create_duplicate_pools_filesystem.xml
+
+litp create -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/pl1_8524_test16/file_systems/fs1_8524_test16/exports/ex1_8524_test16 -t sfs-export -o ipv4allowed_clients='192.168.0.43' options='rw,no_root_squash'
+
+litp export -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/pl1_8524_test16/file_systems/fs1_8524_test16/exports/ex1_8524_test16  -f /xml/test_16_n_create_duplicate_pools_export.xml
+
+assertError --err_type ItemExistsError --err_vpath "/infrastructure/storage/storage_providers/sfs_service_sp1/pools/pl1_8524_test16/file_systems/fs1_8524_test16/exports/ex1_8524_test16" --err_message 'Item /infrastructure/storage/storage_providers/sfs_service_sp1/pools/pl1_8524_test16/file_systems/fs1_8524_test16/exports/ex1_8524_test16 already exists' load -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/pl1_8524_test16/file_systems/fs1_8524_test16/exports -f /xml/test_16_n_create_duplicate_pools_export.xml
+assertError create_plan --err_type ValidationError --err_vpath "/infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1" --err_message 'Create plan failed: Value "litp2" for property "name" is already defined on path: "/infrastructure/storage/storage_providers/sfs_service_sp1/pools/pl1_8524_test16"'

@@ -1,0 +1,46 @@
+# Tests for Resize of a sfs-filesystem
+#
+litpcrypt set key-for-user support support
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sp1 -o name="sfs3" management_ipv4="10.10.10.10" user_name="support" password_key="key-for-user"
+litp create -t sfs-pool -p /infrastructure/storage/storage_providers/sp1/pools/p1 -o name='sfs_pool1'
+litp create -t sfs-cache -p /infrastructure/storage/storage_providers/sp1/pools/p1/cache_objects/cache1 -o name="my_cache"
+litp create -t sfs-filesystem -p /infrastructure/storage/storage_providers/sp1/pools/p1/file_systems/fs1 -o path="/vx/some" size="1024M" snap_size="100" cache_name="my_cache"
+
+litp create_plan
+litp run_plan
+assertState -p /infrastructure/storage/storage_providers/sp1/pools/p1/file_systems/fs1 Applied
+
+
+# 1) Verify that no tasks are generated when updating sfs filesystem with same size
+     litp update -p /infrastructure/storage/storage_providers/sp1/pools/p1/file_systems/fs1 -o size="1024M"
+ # Item type stays in Applied state and no new tasks generated
+     assertState -p /infrastructure/storage/storage_providers/sp1/pools/p1/file_systems/fs1 Applied
+     assertPlanState 'successful'
+ # Verify no tasks generated error
+     assertError create_plan
+
+
+# 2) Verify that no tasks are generated when updating sfs filesystem with same size (but different unit: "G" not "M")
+     litp update -p /infrastructure/storage/storage_providers/sp1/pools/p1/file_systems/fs1 -o size="1G"
+ # Item type  in Updated state
+     assertState -p /infrastructure/storage/storage_providers/sp1/pools/p1/file_systems/fs1 Updated
+ # Verify no tasks generated error
+     assertError create_plan
+
+
+# 3) Verify expand callback task created when expanding fs
+    litp update -p /infrastructure/storage/storage_providers/sp1/pools/p1/file_systems/fs1 -o size="2G"
+    litp create_plan
+    assertCallbackTask nfs_fs_resize_callback /infrastructure/storage/storage_providers/sp1/pools/p1/file_systems/fs1
+
+
+# 4) Verify error message when trying to shrink fs
+    litp update -p /infrastructure/storage/storage_providers/sp1/pools/p1/file_systems/fs1 -o size="500M"
+    assertError --err_message='Decreasing the "size" property of an sfs-filesystem is not supported.' create_plan
+
+# 5) Verify error message when expanding fs and snapshot exists
+    litp update -p /infrastructure/storage/storage_providers/sp1/pools/p1/file_systems/fs1 -o size="1G"
+    litp create_snapshot
+    litp update -p /infrastructure/storage/storage_providers/sp1/pools/p1/file_systems/fs1 -o size="2G"
+    assertError --err_message='Changing the "size" property of any sfs-filesystem while a snapshot exists is not supported.'  create_plan
+

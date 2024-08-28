@@ -1,0 +1,63 @@
+[
+    {
+        "comment": "login",
+        "method": "GET",
+        "endpoint": "/api/types/loginSessionInfo/instances",
+        "json_in": null,
+        "status_code": 200,
+        "json_out": null
+    },
+    {
+        "comment": "change dr get pool",
+        "method": "GET",
+        "endpoint": "/api/instances/pool/name:XT?fields=id",
+        "json_in": null,
+        "status_code": 200,
+        "json_out": {
+            "content": {
+                "id": "pool_1"
+            }
+        }
+    },
+    {
+        "comment": "change dr get nasServer",
+        "method": "GET",
+        "endpoint": "/api/instances/nasServer/name:vsvr1?fields=id",
+        "json_in": null,
+        "status_code": 200,
+        "json_out": {
+            "content": {
+                "id": "nas_1"
+            }
+        }
+    },
+    {
+        "comment": "change dr create filesystem",
+        "method": "POST",
+        "endpoint": "/api/types/storageResource/action/createFilesystem",
+        "json_in": {
+            "fsParameters": {
+                "nasServer": {
+                    "id": "nas_1"
+                },
+                "supportedProtocols": 0,
+                "flrVersion": 0,
+                "isDataReductionEnabled": true,
+                "isThinEnabled": true,
+                "pool": {
+                    "id": "pool_1"
+                },
+                "size": 1073741824
+            },
+            "name": "XT-testfs"
+        },
+        "status_code": 200,
+        "json_out": {
+            "content": {
+                "storageResource": {
+                    "id": "fs_1"
+                }
+            }
+        }
+    }
+]

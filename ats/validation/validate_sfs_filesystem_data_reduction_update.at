@@ -1,0 +1,23 @@
+# Tests for changing data reduction setting of a sfs-filesystem
+#
+runLitpScript 2_node_cluster_setup.inc
+litpcrypt set key-for-user support support
+
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sp1 -o name="sfs1" management_ipv4="10.10.10.10" user_name="support" password_key="key-for-user"
+litp create -t sfs-pool -p /infrastructure/storage/storage_providers/sp1/pools/p1 -o name='sfs_pool1'
+litp create -t sfs-cache -p /infrastructure/storage/storage_providers/sp1/pools/p1/cache_objects/cache1 -o name="my_cache"
+litp create -t sfs-filesystem -p /infrastructure/storage/storage_providers/sp1/pools/p1/file_systems/fs1 -o path="/vx/some" size="1024M" snap_size="100" cache_name="my_cache" data_reduction="true"
+
+litp create_plan
+litp run_plan
+assertState -p /infrastructure/storage/storage_providers/sp1/pools/p1/file_systems/fs1 Applied
+
+
+# 1) Verify that no tasks are generated when updating sfs filesystem with same dr setting
+    litp update -p /infrastructure/storage/storage_providers/sp1/pools/p1/file_systems/fs1 -o data_reduction="true"
+ # Item type stays in Applied state and no new tasks generated
+    assertState -p /infrastructure/storage/storage_providers/sp1/pools/p1/file_systems/fs1 Applied
+    assertPlanState 'successful'
+ # Verify no tasks generated error
+    assertError create_plan
+

@@ -1,0 +1,13 @@
+## Test the creation of a sfs-unmanaged_mount, and then creating a non-sfs-unmanaged mount, and a nfs mount with conflicting names/provider
+
+runLitpScript ../custom_setup.inc
+
+litp create -p /infrastructure/storage/storage_providers/sfs_5284_test24 -t sfs-service -o name='test_25_a'
+litp create -p /infrastructure/storage/storage_providers/sfs_5284_test24/virtual_servers/vs1_5284_test24 -t sfs-virtual-server -o name='test' ipv4address='10.10.10.10'
+litp create -p /infrastructure/storage/storage_providers/nfs_5284_test24 -t nfs-service -o name='test' ipv4address='10.10.10.10'
+litp create -p /infrastructure/storage/nfs_mounts/nm1_5284_test24 -t nfs-mount -o export_path='/vx/ossrc1-file_system4' network_name='mgmt' provider='test' mount_point=/tmp/home/litp-admin/nas_plugin_test
+
+litp inherit -p /deployments/d1/clusters/c1/nodes/n1/file_systems/nm1_5284_test24 -s /infrastructure/storage/nfs_mounts/nm1_5284_test24
+litp inherit -p /ms/file_systems/nm1_5284_test24 -s /infrastructure/storage/nfs_mounts/nm1_5284_test24
+
+assertError --err_type "ValidationError" --err_message 'Create plan failed: Value "test" for property "name" is already defined on path "/infrastructure/storage/storage_providers/nfs_5284_test24"' --err_vpath "/infrastructure/storage/storage_providers/sfs_5284_test24/virtual_servers/vs1_5284_test24" create_plan

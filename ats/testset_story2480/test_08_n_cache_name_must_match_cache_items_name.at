@@ -1,0 +1,19 @@
+##Test that ensures the cache_name on a filesystem must match a cache's name
+
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sfs_service_sp1 -o name=sfs1_init
+litp create -t sfs-pool -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1 -o name=litp2
+
+litp create -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/cache_objects/cache_2840 -t sfs-cache -o name='2480_cache_test08'
+
+litp export -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/cache_objects/cache_2840  -f xml_story2480.xml
+assertError --err_type "ItemExistsError" --err_message "Item /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/cache_objects/cache_2840 already exists" --err_vpath "/infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/cache_objects/cache_2840" load -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/cache_objects -f xml_story2480.xml
+
+litp create -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_2480_test08 -t sfs-filesystem -o path='/vx/2480-fs1_test08' size='10G' cache_name='incorrect' snap_size='10'
+
+litp export -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_2480_test08  -f xml_story2480.xml
+assertError --err_type "ItemExistsError" --err_message "Item /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_2480_test08 already exists" --err_vpath "/infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_2480_test08" load -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems -f xml_story2480.xml
+
+let __err_a --err_type "ValidationError" --err_message 'Create plan failed: The "cache_name" property with value "incorrect" does not reference a defined sfs-cache item under any sfs-pool for the sfs-service on path "/infrastructure/storage/storage_providers/sfs_service_sp1".' --err_vpath "/infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_2480_test08"
+let __err_b --err_type "ValidationError" --err_message 'Create plan failed: The sfs-cache item requires a minimum of 1 sfs-filesystem item with a property "cache_name" value "2480_cache_test08".' --err_vpath "/infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/cache_objects/cache_2840"
+
+assertError __err_a __err_b create_plan

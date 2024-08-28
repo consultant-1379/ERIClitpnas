@@ -1,0 +1,22 @@
+## Test that removes a mounted client from the allowed clients list of an export
+
+runLitpScript ../custom_setup.inc
+
+litpcrypt set key-for-sfs support symantec
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sfs_service_sp1 -o name=sfs1_init management_ipv4=172.16.30.17 user_name=support password_key=key-for-sfs
+litp create -t sfs-pool -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1 -o name=litp2
+litp create -t sfs-virtual-server -p /infrastructure/storage/storage_providers/sfs_service_sp1/virtual_servers/vs1 -o ipv4address=172.16.30.17 name=virtserv1
+
+litp create -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_6815_test06 -t sfs-filesystem -o path='/vx/6815-fs1_test06' size='10M'
+litp create -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_6815_test06/exports/ex1_6815_test06 -t sfs-export -o ipv4allowed_clients='192.168.0.43,192.168.0.44,192.168.0.1' options='rw,no_root_squash'
+litp create -p /infrastructure/storage/nfs_mounts/nm1_6815_test06 -t nfs-mount -o export_path='/vx/6815-fs1_test06' network_name='mgmt' provider='virtserv1' mount_options='soft' mount_point='/test1'
+
+litp inherit -p /deployments/d1/clusters/c1/nodes/n1/file_systems/nm1_6815_test06 -s /infrastructure/storage/nfs_mounts/nm1_6815_test06
+
+litp create_plan
+litp run_plan
+assertPlanState successful
+
+litp update -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_6815_test06/exports/ex1_6815_test06 -o ipv4allowed_clients='192.168.0.44'
+
+assertError --err_type "ValidationError" --err_message 'Create plan failed: The IP address for the network "mgmt" must be included in the property "ipv4allowed_clients" of an sfs-export which is defined under an sfs-filesystem which has a property "path" defined as "/vx/6815-fs1_test06".' create_plan

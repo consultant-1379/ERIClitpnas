@@ -1,0 +1,141 @@
+[
+    {
+        "comment": "login",
+        "method": "GET",
+        "endpoint": "/api/types/loginSessionInfo/instances",
+        "json_in": null,
+        "status_code": 200,
+        "json_out": null
+    },
+    {
+        "comment": "fs get existing",
+        "method": "GET",
+        "endpoint": "/api/instances/filesystem/name:XT-testfs?fields=id",
+        "json_in": null,
+        "status_code": 404,
+        "json_out": {
+            "error": {
+                "errorCode": 131149829,
+                "httpStatusCode": 404,
+                "messages": [
+                    {
+                    "en-US": "The requested resource does not exist. (Error Code:0x7d13005)"
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "comment": "fs create get pool",
+        "method": "GET",
+        "endpoint": "/api/instances/pool/name:XT?fields=id",
+        "json_in": null,
+        "status_code": 200,
+        "json_out": {
+            "content": {
+                "id": "pool_1"
+            }
+        }
+    },
+    {
+        "comment": "fs create get nasServer",
+        "method": "GET",
+        "endpoint": "/api/instances/nasServer/name:vsvr1?fields=id",
+        "json_in": null,
+        "status_code": 200,
+        "json_out": {
+            "content": {
+                "id": "nas_1"
+            }
+        }
+    },
+    {
+        "comment": "fs create create filesystem",
+        "method": "POST",
+        "endpoint": "/api/types/storageResource/action/createFilesystem",
+        "json_in": {
+            "fsParameters": {
+                "nasServer": {
+                    "id": "nas_1"
+                },
+                "supportedProtocols": 0,
+                "flrVersion": 0,
+                "isDataReductionEnabled": true,
+                "isThinEnabled": true,
+                "pool": {
+                    "id": "pool_1"
+                },
+                "size": 1073741824
+            },
+            "name": "XT-testfs"
+        },
+        "status_code": 200,
+        "json_out": {
+            "content": {
+                "storageResource": {
+                    "id": "fs_1"
+                }
+            }
+        }
+    },
+    {
+        "comment": "login",
+        "method": "GET",
+        "endpoint": "/api/types/loginSessionInfo/instances",
+        "json_in": null,
+        "status_code": 200,
+        "json_out": null
+    },
+    {
+        "comment": "share list",
+        "method": "GET",
+        "endpoint": "/api/types/nfsShare/instances?fields=name,defaultAccess,readOnlyHostsString,readWriteHostsString,readOnlyRootHostsString,readWriteRootHostsString",
+        "json_in": null,
+        "status_code": 200,
+        "json_out": {
+            "entries": []
+        }
+    },
+    {
+        "comment": "share create get fs",
+        "method": "GET",
+        "endpoint": "/api/instances/filesystem/name:XT-testfs?fields=nfsShare,storageResource",
+        "json_in": null,
+        "status_code": 200,
+        "json_out": {
+            "content": {
+                "id": "fs_1",
+                "storageResource": {
+                    "id": "res_1"
+                }
+            }
+        }
+    },
+    {
+        "comment": "share create ",
+        "method": "POST",
+        "endpoint": "/api/instances/storageResource/res_1/action/modifyFilesystem",
+        "json_in": {
+            "nfsShareCreate": [
+                {
+                    "nfsShareParameters" : {
+                        "isReadOnly": false,
+                        "defaultAccess": 0,
+                        "readWriteRootHostsString": "10.10.10.10",
+                        "exportOption": 1
+                    },
+                    "name": "vx/XT-testfs",
+                    "path": "/"
+                }
+            ]
+        },
+        "status_code": 200,
+        "json_out": {
+            "content": {
+                "storageResource": {
+                    "id": "fs_1"
+                }
+            }
+        }
+    }
+]

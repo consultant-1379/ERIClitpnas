@@ -1,0 +1,50 @@
+runLitpScript 2_node_cluster_setup.inc
+
+litpcrypt set key-for-user support support
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sp1 -o name="sfs1" management_ipv4="10.10.10.10" user_name="support" password_key="key-for-user" nas_type='unityxt'
+litp create -t nfs-service -p /infrastructure/storage/storage_providers/sp2 -o name="nfs1" ipv4address="12.12.12.12"
+litp create -t nfs-mount -p /infrastructure/storage/nfs_mounts/nm1 -o export_path="/nas_shared/ro_unmanaged" provider="nfs1" mount_point="/cluster_ro" mount_options="soft,intr,timeo=30,noexec,nosuid" network_name="nodes"
+
+litp inherit -p /deployments/local/clusters/cluster1/nodes/node1/file_systems/nm1 -s /infrastructure/storage/nfs_mounts/nm1
+
+litp create_plan
+litp run_plan
+
+assertState -p /ms/network_interfaces/if0 Applied
+assertState -p /deployments/local/clusters/cluster1/nodes/node1/network_interfaces/if0 Applied
+assertState -p /deployments/local/clusters/cluster1/nodes/node1/file_systems/nm1 Applied
+assertState -p /infrastructure/storage/nfs_mounts/nm1 Applied
+
+litp update -p /deployments/local/clusters/cluster1/nodes/node1/network_interfaces/if0 -o ipaddress=10.10.10.110
+assertState -p /deployments/local/clusters/cluster1/nodes/node1/network_interfaces/if0 Updated
+assertState -p /deployments/local/clusters/cluster1/nodes/node1/file_systems/nm1 Applied
+
+litp create_plan
+
+# Assert a remount task is present - the remount task's primary model item is
+# the node's nfs-mount item under its file_systems collection, in common with
+# non-remount tasks
+#assertConfigTask node1 nas::config /deployments/local/clusters/cluster1/nodes/node1/file_systems/nm1 /deployments/local/clusters/cluster1/nodes/node1/file_systems/nm1 path='12.12.12.12:/nas_shared/ro_unmanaged' mount_point='/cluster_ro' mount_status='remount' mount_options='soft,intr,timeo=30,noexec,nosuid'
+
+# Cause the remount task to fail
+#failConfigTask nas::config node1 /deployments/local/clusters/cluster1/nodes/node1/file_systems/nm1
+
+litp run_plan
+#assertPlanState failed
+
+# The mount is still Applied
+assertState -p /deployments/local/clusters/cluster1/nodes/node1/file_systems/nm1 Applied
+
+# However, the failure of the remount task leads to the interface still being
+# in the Updated state
+#assertState -p /deployments/local/clusters/cluster1/nodes/node1/network_interfaces/if0 Updated
+
+#litp create_plan
+## LITPCDS-7394 - this task won't be present anymore as no change to the model item took place
+##assertConfigTask node1 network::config eth0 /deployments/local/clusters/cluster1/nodes/node1/network_interfaces/if0
+#assertConfigTask node1 nas::config /deployments/local/clusters/cluster1/nodes/node1/file_systems/nm1 /deployments/local/clusters/cluster1/nodes/node1/file_systems/nm1 path='12.12.12.12:/nas_shared/ro_unmanaged' mount_point='/cluster_ro' mount_status='remount' mount_options='soft,intr,timeo=30,noexec,nosuid'
+#litp run_plan
+#assertFileContents LITPCDS_6597.pp /opt/ericsson/nms/litp/etc/puppet/manifests/plugins/node1.pp
+
+assertState -p /deployments/local/clusters/cluster1/nodes/node1/file_systems/nm1 Applied
+assertState -p /deployments/local/clusters/cluster1/nodes/node1/network_interfaces/if0 Applied

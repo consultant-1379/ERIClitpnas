@@ -1,0 +1,7 @@
+#Ensure plan can be created without sfs_service
+
+runLitpScript 2_node_cluster_setup.inc
+
+litp create_plan
+
+assertPlanState initial

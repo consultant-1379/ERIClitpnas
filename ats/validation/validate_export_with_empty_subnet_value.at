@@ -1,0 +1,15 @@
+runLitpScript 2_node_cluster_setup.inc
+
+litp create -t network -p /infrastructure/networking/networks/traffic1 -o name='traffic1' subnet='172.16.100.0/24' litp_management=false
+litp create -t eth -p /deployments/local/clusters/cluster1/nodes/node1/network_interfaces/if1 -o network_name=traffic1 ipaddress=172.16.100.2 device_name=eth1 macaddress=80:C1:6E:7A:09:C4
+litp create -p /ms/network_interfaces/if2 -t eth -o network_name=traffic1 ipaddress="172.16.100.1" macaddress="80:C1:6E:7A:09:D3" device_name=eth1
+
+
+litpcrypt set key-for-user support support
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sp1 -o name="sfs1" management_ipv4="10.10.10.10" user_name="support" password_key="key-for-user"
+litp create -t sfs-pool -p /infrastructure/storage/storage_providers/sp1/pools/p1 -o name='sfs_pool1'
+litp create -t sfs-cache -p /infrastructure/storage/storage_providers/sp1/pools/p1/cache_objects/cache1 -o name="my_cache"
+litp create -t sfs-filesystem -p /infrastructure/storage/storage_providers/sp1/pools/p1/file_systems/fs1 -o path="/vx/some" size="1024M" snap_size="100" cache_name="my_cache"
+
+let __err_a --err_type ValidationError --err_property "ipv4allowed_clients" --err_message "Invalid value ''."
+assertError __err_a create -t sfs-export -p /infrastructure/storage/storage_providers/sp1/pools/p1/file_systems/fs1/exports/ex1 -o ipv4allowed_clients="" options='rw,no_root_squash'

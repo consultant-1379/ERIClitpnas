@@ -1,0 +1,15 @@
+## Test that when creating an non-sfs-unmanaged_mount, when creating the nfs_mounts, it should fail when there is duplicate mount points
+
+runLitpScript ../custom_setup.inc
+
+litp create -p /infrastructure/storage/storage_providers/sp1_5284 -t nfs-service -o name='nfs1' ipv4address='10.59.139.101'
+litp create -p /infrastructure/storage/nfs_mounts/nm1_5284_test23 -t nfs-mount -o export_path='/vx/ossrc1-file_system4' network_name='mgmt' provider='rubbish' mount_point='/5284_test23'nas_plugin_test
+
+litp inherit -p /deployments/d1/clusters/c1/nodes/n1/file_systems/nm1_5284_test23 -s /infrastructure/storage/nfs_mounts/nm1_5284_test23
+litp inherit -p /ms/file_systems/nm1_5284_test23 -s /infrastructure/storage/nfs_mounts/nm1_5284_test23
+
+let __err_a --err_type "ValidationError" --err_message 'Create plan failed: Value "rubbish" for property "provider" does not reference any defined sfs-virtual-server or nfs-service items.' --err_vpath "/ms/file_systems/nm1_5284_test23"
+let __err_b --err_type "ValidationError" --err_message 'Create plan failed: Value "rubbish" for property "provider" does not reference any defined sfs-virtual-server or nfs-service items.' --err_vpath "/deployments/d1/clusters/c1/nodes/n1/file_systems/nm1_5284_test23"
+let __err_c --err_type "ValidationError" --err_message 'Create plan failed: Value "rubbish" for property "provider" does not reference any defined sfs-virtual-server or nfs-service items.' --err_vpath "/infrastructure/storage/nfs_mounts/nm1_5284_test23"
+
+assertError __err_a __err_b __err_c create_plan

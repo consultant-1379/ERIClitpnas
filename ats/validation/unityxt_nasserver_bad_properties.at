@@ -1,0 +1,8 @@
+#Create Nas server for unityxt with bad properties
+
+litpcrypt set key-for-user support support
+
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sp1 -o name="sfs1" management_ipv4="10.10.10.10" user_name="support" password_key="key-for-user" nas_type='unityxt'
+assertError create -t sfs-virtual-server -p /infrastructure/storage/storage_providers/sp1/virtual_servers/vrs1 -o name=vrs1 ipv4address="10.10.10.20" ports="0,3" sharing_protocols="nfsv5" san_pool="pool_1" sp="spa" subnet="224.11.12.13/32" gateway="255.255.255.255"
+
+

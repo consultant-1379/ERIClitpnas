@@ -1,0 +1,14 @@
+## This test creates two sfs-caches with same name, to prove that only one can exist
+
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sfs_service_sp1 -o name=sfs1_init
+litp create -t sfs-pool -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1 -o name=litp2
+
+litp create -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/cache_objects/cache_2840 -t sfs-cache -o name='2480_cache_test13'
+litp create -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/cache_objects/cache_2840_b -t sfs-cache -o name='2480_cache_test13'
+litp create -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_2480_test13 -t sfs-filesystem -o path='/vx/2480-fs1_test13' size='10G' cache_name='2480_cache_test13' snap_size='10'
+
+let __err_a --err_type "CardinalityError" --err_message 'Create plan failed: This collection is limited to a maximum of 1 items not marked for removal' --err_vpath "/infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/cache_objects"
+let __err_b --err_type "ValidationError" --err_message 'Create plan failed: Only one sfs-cache is allowed per sfs-service. An sfs-cache with a "name" property value of "2480_cache_test13" is already defined for the sfs-service on path "/infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/cache_objects/cache_2840_b".' --err_vpath "/infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/cache_objects/cache_2840"
+let __err_c --err_type "ValidationError" --err_message 'Create plan failed: Value "2480_cache_test13" for property "name" is already defined on sfs-cache item path: "/infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/cache_objects/cache_2840".' --err_vpath "/infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/cache_objects/cache_2840_b"
+
+assertError __err_a __err_b __err_c create_plan

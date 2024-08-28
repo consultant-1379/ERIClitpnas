@@ -1,0 +1,43 @@
+##Test that checks conflicting name properties for an unmanaged mount by
+##creating two sfs-service items with the same name,
+##creating two sfs-virtual items with the same name
+##creating an nfs-service item and a sfs-virtual-service item with the same name.
+
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sfs_service_sp1/ -o management_ipv4=172.16.30.17 user_name=support name=sfs1_init password_key=key-for-sfs
+litp create -t sfs-virtual-server -p /infrastructure/storage/storage_providers/sfs_service_sp1/virtual_servers/vs1 -o ipv4address=172.16.30.17 name=virtserv1
+
+litp create -p /infrastructure/storage/storage_providers/sp1_5284_test19 -t sfs-service -o name='test_20_a'
+litp create -p /infrastructure/storage/storage_providers/sp2_5284_test19 -t sfs-service -o name='test_20_a'
+
+assertError --err_type "ValidationError" --err_message 'Create plan failed: Value "test_20_a" for property "name" is already defined on sfs-service path "/infrastructure/storage/storage_providers/sp1_5284_test19"' --err_vpath "/infrastructure/storage/storage_providers/sp2_5284_test19" create_plan
+
+litp create -p /infrastructure/storage/storage_providers/sp3_5284_test19 -t sfs-service -o name='test_20_b'
+litp create -p /infrastructure/storage/storage_providers/sp1_5284_test19/virtual_servers/vs1_5284_test19 -t sfs-virtual-server -o name='test_20_vs1' ipv4address='10.10.10.10'
+litp create -p /infrastructure/storage/storage_providers/sp1_5284_test19/virtual_servers/vs2_5284_test19 -t sfs-virtual-server -o name='test_20_vs1' ipv4address='10.10.10.11'
+
+let __err_a --err_type "ValidationError" --err_message 'Create plan failed: Value "test_20_vs1" for property "name" is already defined on path "/infrastructure/storage/storage_providers/sp1_5284_test19/virtual_servers/vs2_5284_test19"' --err_vpath "/infrastructure/storage/storage_providers/sp1_5284_test19/virtual_servers/vs1_5284_test19"
+let __err_b --err_type "ValidationError" --err_message 'Create plan failed: Value "test_20_a" for property "name" is already defined on sfs-service path "/infrastructure/storage/storage_providers/sp1_5284_test19"' --err_vpath "/infrastructure/storage/storage_providers/sp2_5284_test19"
+
+assertError __err_a __err_b create_plan
+
+litp create -p /infrastructure/storage/storage_providers/sp1_5284_test19/virtual_servers/vs3_5284_test19 -t sfs-virtual-server -o name='vsvr1' ipv4address='172.16.30.17'
+litp create -p /infrastructure/storage/storage_providers/np1_5284_test19 -t nfs-service -o name='test_20_nfs1' ipv4address='10.10.10.10'
+litp create -p /infrastructure/storage/storage_providers/np2_5284_test19 -t nfs-service -o name='test_20_nfs1' ipv4address='10.10.10.11'
+
+let __err_a --err_type "ValidationError" --err_message 'Create plan failed: Value "test_20_nfs1" for property "name" is already defined on path "/infrastructure/storage/storage_providers/np1_5284_test19"' --err_vpath "/infrastructure/storage/storage_providers/np2_5284_test19"
+let __err_b --err_type "ValidationError" --err_message 'Create plan failed: Value "test_20_vs1" for property "name" is already defined on path "/infrastructure/storage/storage_providers/sp1_5284_test19/virtual_servers/vs2_5284_test19"' --err_vpath "/infrastructure/storage/storage_providers/sp1_5284_test19/virtual_servers/vs1_5284_test19"
+let __err_c --err_type "ValidationError" --err_message 'Create plan failed: Value "test_20_a" for property "name" is already defined on sfs-service path "/infrastructure/storage/storage_providers/sp1_5284_test19"' --err_vpath "/infrastructure/storage/storage_providers/sp2_5284_test19"
+let __err_d --err_type "ValidationError" --err_message 'Create plan failed: Value "172.16.30.17" for property "ipv4address" is already defined on sfs-virtual-server path "/infrastructure/storage/storage_providers/sfs_service_sp1/virtual_servers/vs1"' --err_vpath "/infrastructure/storage/storage_providers/sp1_5284_test19/virtual_servers/vs3_5284_test19"
+
+assertError __err_a __err_b __err_c __err_d create_plan
+
+litp create -p /infrastructure/storage/storage_providers/np3_5284_test19 -t nfs-service -o name='test_20_mix' ipv4address='10.10.10.12'
+litp create -p /infrastructure/storage/storage_providers/sp1_5284_test19/virtual_servers/vs4_5284_test19 -t sfs-virtual-server -o name='test_20_mix' ipv4address='10.10.10.12'
+
+let __err_a --err_type "ValidationError" --err_message 'Create plan failed: Value "test_20_nfs1" for property "name" is already defined on path "/infrastructure/storage/storage_providers/np1_5284_test19"' --err_vpath "/infrastructure/storage/storage_providers/np2_5284_test19"
+let __err_b --err_type "ValidationError" --err_message 'Create plan failed: Value "test_20_mix" for property "name" is already defined on path "/infrastructure/storage/storage_providers/np3_5284_test19"' --err_vpath "/infrastructure/storage/storage_providers/sp1_5284_test19/virtual_servers/vs4_5284_test19"
+let __err_c --err_type "ValidationError" --err_message 'Create plan failed: Value "test_20_vs1" for property "name" is already defined on path "/infrastructure/storage/storage_providers/sp1_5284_test19/virtual_servers/vs2_5284_test19"' --err_vpath "/infrastructure/storage/storage_providers/sp1_5284_test19/virtual_servers/vs1_5284_test19"
+let __err_d --err_type "ValidationError" --err_message 'Create plan failed: Value "test_20_a" for property "name" is already defined on sfs-service path "/infrastructure/storage/storage_providers/sp1_5284_test19"' --err_vpath "/infrastructure/storage/storage_providers/sp2_5284_test19"
+let __err_e --err_type "ValidationError" --err_message 'Create plan failed: Value "172.16.30.17" for property "ipv4address" is already defined on sfs-virtual-server path "/infrastructure/storage/storage_providers/sfs_service_sp1/virtual_servers/vs1"' --err_vpath "/infrastructure/storage/storage_providers/sp1_5284_test19/virtual_servers/vs3_5284_test19"
+
+assertError __err_a __err_b __err_c __err_d __err_e create_plan

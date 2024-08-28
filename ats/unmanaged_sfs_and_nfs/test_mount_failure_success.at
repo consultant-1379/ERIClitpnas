@@ -1,0 +1,25 @@
+runLitpScript 2_node_cluster_setup.inc
+
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sp1 -o name="sfs1"
+litp create -t sfs-virtual-server -p /infrastructure/storage/storage_providers/sp1/virtual_servers/vs1 -o name='vsvr1' ipv4address="10.44.86.231"
+litp create -t nfs-mount -p /infrastructure/storage/nfs_mounts/nm10 -o export_path="/vxxxxx/rog1-test1G" provider="vsvr1" mount_point="/a/b/c/test2" mount_options="soft" network_name="nodes"
+litp create -t nfs-mount -p /infrastructure/storage/nfs_mounts/nm11 -o export_path="/vx/rog1-test1G" provider="vsvr1" mount_point="/a/b/c/test3" mount_options="soft" network_name="nodes"
+litp inherit -p /ms/file_systems/fs1 -s /infrastructure/storage/nfs_mounts/nm10
+litp inherit -p /ms/file_systems/fs2 -s /infrastructure/storage/nfs_mounts/nm11
+litp create_plan
+
+failConfigTask nas::config ms1 /ms/file_systems/fs1
+
+litp run_plan
+
+assertPlanState failed
+
+assertState -p /ms/file_systems/fs1 Initial
+assertState -p /ms/file_systems/fs2 Applied
+
+litp remove -p /ms/file_systems/fs1
+litp remove -p /ms/file_systems/fs2
+litp remove -p /infrastructure/storage/nfs_mounts/nm10
+litp remove -p /infrastructure/storage/nfs_mounts/nm11
+litp create_plan
+

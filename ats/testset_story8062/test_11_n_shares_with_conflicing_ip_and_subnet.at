@@ -1,0 +1,10 @@
+## Test that creates two exports with conflicting allowed clients
+
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sfs_service_sp1 -o name=sfs1_init management_ipv4=172.16.30.17 user_name=support password_key=key-for-sfs
+litp create -t sfs-pool -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1 -o name=litp2
+
+litp create -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8062_test11 -t sfs-filesystem -o path='/vx/8062-fs1_test11' size='10M'
+litp create -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8062_test11/exports/ex1_8062_test11 -t sfs-export -o ipv4allowed_clients='192.168.0.43' options='rw,no_root_squash'
+litp create -p /infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8062_test11/exports/ex1_8062_b_test11 -t sfs-export -o ipv4allowed_clients='192.168.0.0/16' options='rw,no_root_squash'
+
+assertError --err_type "ValidationError" --err_message 'Create plan failed: IP address "192.168.0.43" in value "192.168.0.43" for property "ipv4allowed_clients" overlaps with subnet "192.168.0.0/16" on path: "/infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8062_test11/exports/ex1_8062_b_test11"' --err_vpath "/infrastructure/storage/storage_providers/sfs_service_sp1/pools/sfs_pool1/file_systems/fs1_8062_test11/exports/ex1_8062_test11" create_plan

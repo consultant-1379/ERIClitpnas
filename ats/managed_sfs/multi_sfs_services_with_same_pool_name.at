@@ -1,0 +1,25 @@
+runLitpScript 2_node_cluster_setup.inc
+
+litpcrypt set key-for-user support support
+
+#First SFS Service
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sp1 -o name="sfs1" management_ipv4="10.10.10.10" user_name="support" password_key="key-for-user"
+litp create -t sfs-virtual-server -p /infrastructure/storage/storage_providers/sp1/virtual_servers/vrs1 -o name=vrs1 ipv4address="172.16.100.2"
+
+litp create -t sfs-pool -p /infrastructure/storage/storage_providers/sp1/pools/p1 -o name='sfs_pool1'
+litp create -t sfs-filesystem -p /infrastructure/storage/storage_providers/sp1/pools/p1/file_systems/fs1 -o path="/vx/some" size="1024M"
+
+#Second SFS Service
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sp2 -o name="sfs2" management_ipv4="10.10.10.11" user_name="support" password_key="key-for-user"
+litp create -t sfs-virtual-server -p /infrastructure/storage/storage_providers/sp2/virtual_servers/vrs1 -o name=vrs2 ipv4address="172.16.100.3"
+
+litp create -t sfs-pool -p /infrastructure/storage/storage_providers/sp2/pools/p1 -o name='sfs_pool1'
+litp create -t sfs-filesystem -p /infrastructure/storage/storage_providers/sp2/pools/p1/file_systems/fs1 -o path="/vx/some" size="1024M"
+
+litp create_plan
+
+assertCallbackTask get_and_save_remote_host_key_callback /infrastructure/storage/storage_providers/sp1
+assertCallbackTask get_and_save_remote_host_key_callback /infrastructure/storage/storage_providers/sp2
+
+litp run_plan
+

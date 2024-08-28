@@ -1,0 +1,36 @@
+runLitpScript 2_node_cluster_setup.inc
+
+#litpcrypt set key-for-sfs support support
+
+litp create -t sfs-service -p /infrastructure/storage/storage_providers/sp2 -o name="sfs1"
+
+litp create -t sfs-virtual-server -p /infrastructure/storage/storage_providers/sp2/virtual_servers/vs1 -o name='vsvr1' ipv4address="10.10.10.10"
+
+litp create -t nfs-mount -p /infrastructure/storage/nfs_mounts/nm1 -o export_path="/vx/exports/xyz-fs1" provider="vsvr1" mount_point="/tmp1" mount_options="soft" network_name="nodes"
+
+litp inherit -p /deployments/local/clusters/cluster1/nodes/node1/file_systems/fs1 -s /infrastructure/storage/nfs_mounts/nm1
+
+litp create_plan
+litp run_plan
+
+assertState -p /deployments/local/clusters/cluster1/nodes/node1/file_systems/fs1 Applied
+assertState -p /infrastructure/storage/nfs_mounts/nm1 Applied
+
+#litp update -p /infrastructure/storage/storage_providers/sp2 -o user_name="support" password_key="pwd" management_ipv4="10.10.10.10"
+#litp create -t nfs-mount -p /infrastructure/storage/nfs_mounts/nm2 -o export_path="/vx/exports/xyz-fs2" provider="vsvr1" mount_point="/tmp2" mount_options="soft" network_name="nodes"
+#litp inherit -p /deployments/local/clusters/cluster1/nodes/node1/file_systems/fs2 -s /infrastructure/storage/nfs_mounts/nm2
+
+#litp create_plan
+#litp run_plan
+
+#litp update -p /infrastructure/storage/storage_providers/sp2 -o password_key="key-for-sfs"
+#litp create -t nfs-mount -p /infrastructure/storage/nfs_mounts/nm3 -o export_path="/vx/exports/xyz-fs3" provider="vsvr1" mount_point="/tmp3" mount_options="soft" network_name="nodes"
+#litp inherit -p /deployments/local/clusters/cluster1/nodes/node1/file_systems/fs3 -s /infrastructure/storage/nfs_mounts/nm3
+
+#litp create_plan
+#litp run_plan
+
+#litp create -t sfs-export -p /infrastructure/storage/storage_providers/sp2/exports/ex1 -o export_path="/vx/first-fs" export_options="no_root_squash" ipv4allowed_clients="192.168.5.102,192.168.56.103" size='1G'
+
+#litp create_plan
+#litp run_plan
